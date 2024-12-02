@@ -1,0 +1,58 @@
+// ==MiruExtension==
+// @name Cineby
+// @version 1.0.0
+// @author Your Name
+// @description Extension for accessing cineby.ru
+// ==/MiruExtension==
+
+export default class extends Extension {
+  // Fetch the latest movies
+  async latest(page) {
+    const res = await this.request(`/api/v1/latest?page=${page}`);
+    return res.data.movies.map((item) => ({
+      title: item.title,
+      url: item.id.toString(),
+      cover: item.cover_image,
+    }));
+  }
+
+  // Fetch movie details
+  async detail(url) {
+    const res = await this.request(`/api/v1/movie/${url}`);
+    const data = res.data.movie;
+    return {
+      title: data.title,
+      cover: data.cover_image,
+      desc: data.description,
+      episodes: [
+        {
+          title: "Watch Links",
+          urls: data.streams.map((stream) => ({
+            name: stream.quality,
+            url: stream.url,
+          })),
+        },
+      ],
+    };
+  }
+
+  // Search for movies
+  async search(kw, page) {
+    const res = await this.request(
+      `/api/v1/search?query=${encodeURIComponent(kw)}&page=${page}`
+    );
+    return res.data.movies.map((item) => ({
+      title: item.title,
+      url: item.id.toString(),
+      cover: item.cover_image,
+    }));
+  }
+
+  // Watch movie by URL
+  async watch(url) {
+    return {
+      type: "stream",
+      url: url,
+    };
+  }
+}
